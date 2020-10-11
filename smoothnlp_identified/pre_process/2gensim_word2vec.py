@@ -11,7 +11,6 @@ import numpy as np
 import gensim
 from gensim.models import word2vec
 
-
 def get_trainset(x_train):
     from gensim import corpora
     x = []

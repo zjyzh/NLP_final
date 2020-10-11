@@ -222,55 +222,59 @@ def blog_corpus(input_file):
 
 def unlabeld_blog_corpus(input_file):
     in_ = os.path.join('data/big_corpus/', input_file)  # input.path设为'data/corpus'
-    text = pd.read_excel(in_,
+    chunker = pd.read_excel(in_,
                          header=0,
                          index_col=None,
-                         sep='\t',
+                         # sep='\t',
                          names=['id', 'name', 'fans', 'web_id', 'blog', 'time', 'repost', 'coment', 'thumb'],
-                         dtype={'id': int, 'name': str, 'fans': int, 'web_id': int, 'blog': str, 'time': str})
-    # 微博最后要留给评论的数据应该有：地点编号、微博id、时间
-    # 微博需要分析的数值：粉丝数、评论数、转发数、点赞数、地点编号、时间
+                         dtype={'id': int, 'name': str, 'fans': int, 'web_id': int, 'blog': str, 'time': str},
+                         chunksize=10000)
 
-    print(text.head())
-    text = text.dropna().reset_index(drop=True)  # Removing the missing values
-    print("缺失值：", text.isnull().sum())
-    text['place'] = None
-    text['topic'] = None
+    for text in chunker:
 
-    col = ['id', 'name', 'fans', 'web_id', 'blog', 'topic', 'time', 'repost', 'coment', 'thumb', 'place']
-    text = text[col]
-    # text=read_f[['web_id','blog']]
-    num = text.shape[0]
+        # 微博最后要留给评论的数据应该有：地点编号、微博id、时间
+        # 微博需要分析的数值：粉丝数、评论数、转发数、点赞数、地点编号、时间
 
-    file_name = input_file.split('.')
-    train_xlsx = os.path.join('data/big_corpus/', file_name[0] + '_processed.xlsx')
-    txt = os.path.join('data/big_corpus/', file_name[0] + '_processed.txt')
-    tt = 'data/big_corpus/blog_topic.txt'
+        print(text.head())
+        text = text.dropna().reset_index(drop=True)  # Removing the missing values
+        print("缺失值：", text.isnull().sum())
+        text['place'] = None
+        text['topic'] = None
 
-    with open(txt, 'w', encoding='utf-8') as t, open(tt, 'w', encoding='utf-8') as to:
-        for i in range(num):
-            # top=sentence_depart(text.loc[i,'top']) ##topic先试试直接模糊对比，再试试用余弦计算两者相似度
+        col = ['id', 'name', 'fans', 'web_id', 'blog', 'topic', 'time', 'repost', 'coment', 'thumb', 'place']
+        text = text[col]
+        # text=read_f[['web_id','blog']]
+        num = text.shape[0]
 
-            # 分词
-            answer = sentence_depart(text.loc[i, 'blog'])
-            blog = answer['blog']
-            topic = answer['topic']
-            topic = topic.split(' ')
-            for i in topic:
-                to.write('%s\n' % i)
+        file_name = input_file.split('.')
+        train_xlsx = os.path.join('data/big_corpus/', file_name[0] + '_processed.xlsx')
+        txt = os.path.join('data/big_corpus/', file_name[0] + '_processed.txt')
+        tt = 'data/big_corpus/blog_topic.txt'
 
-            text.loc[i, 'blog'] = answer['blog']
-            text.loc[i, 'topic'] = answer['topic']
-            text.loc[i, 'place'] = answer['place']
-            # top=sentence_depart(text.loc[i,'top']) ##topic先试试直接模糊对比，再试试用余弦计算两者相似度
+        with open(txt, 'w', encoding='utf-8') as t, open(tt, 'w', encoding='utf-8') as to:
+            for i in range(num):
+                # top=sentence_depart(text.loc[i,'top']) ##topic先试试直接模糊对比，再试试用余弦计算两者相似度
 
-            t.write('%s\n' % blog)
-            #writer.write("%s\n" % blog)
+                # 分词
+                answer = sentence_depart(text.loc[i, 'blog'])
+                blog = answer['blog']
+                topic = answer['topic']
+                topic = topic.split(' ')
+                for i in topic:
+                    to.write('%s\n' % i)
 
-    print('新的表已生成：/n', text.head())
-    text.to_excel(train_xlsx, encoding='utf-8', index=False)
+                text.loc[i, 'blog'] = answer['blog']
+                text.loc[i, 'topic'] = answer['topic']
+                text.loc[i, 'place'] = answer['place']
+                # top=sentence_depart(text.loc[i,'top']) ##topic先试试直接模糊对比，再试试用余弦计算两者相似度
 
-    return num
+                t.write('%s\n' % blog)
+                #writer.write("%s\n" % blog)
+
+        print('新的表已生成：/n', text.head())
+        text.to_excel(train_xlsx, encoding='utf-8', index=False)
+
+        return num
 
 
 if __name__ == "__main__":

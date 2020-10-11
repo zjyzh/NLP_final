@@ -13,6 +13,7 @@ def chunk_generator_adapter(obj, chunk_size):
     :return:
     '''
     tstart = datetime.now()
+    print('in chunk')
     while True:
         import sqlalchemy
         if isinstance(obj,sqlalchemy.engine.result.ResultProxy):  # 输入database connection object = conn.execute(query)
@@ -50,17 +51,32 @@ def extract_phrase(corpus,
     :return:
     '''
     if isinstance(corpus,str):
+        print('str')
         corpus_splits = [remove_irregular_chars(sent) for sent in sentence_split_by_punc(corpus)]
     elif isinstance(corpus,list):
+        print('list')
         corpus_splits = [remove_irregular_chars(sent) for news in corpus for sent in
                                 sentence_split_by_punc(str(news)) if len(remove_irregular_chars(sent)) != 0]
     else:
+        print('else')
         corpus_splits = chunk_generator_adapter(corpus, chunk_size)
+
     word_info_scores = get_scores(corpus_splits,min_n,max_n,chunk_size,min_freq)
     new_words = [item[0] for item in sorted(word_info_scores.items(),key=lambda item:item[1][-1],reverse = True)]
-    if top_k > 1:              #输出后k个词
-        return new_words[top_k:]
-    elif top_k < 1:            #输出后k%的词
-        return new_words[int(top_k*len(new_words)):]
+
+    i = 0
+
+    if top_k > 1:              #输出前k个词
+        if i < 100:
+            print(new_words)
+            i += 1
+        return new_words[:top_k]
+    elif top_k < 1:            #输出前k%的词
+        if i < 100:
+            print(new_words)
+            i += 1
+        return new_words[:int(top_k*len(new_words))]
+
+
 
 

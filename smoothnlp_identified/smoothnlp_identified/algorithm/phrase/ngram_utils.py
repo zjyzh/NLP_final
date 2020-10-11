@@ -192,6 +192,7 @@ def get_scores(corpus,
     :param min_freq:
     :return: 为节省内存, 每个候选词的分数以tuble的形式返回.
     """
+    print('inscore')
     ngram_freq, ngram_keys = get_ngram_freq_info(corpus,min_n,max_n,
                                                  chunk_size=chunk_size,
                                                  min_freq=min_freq)

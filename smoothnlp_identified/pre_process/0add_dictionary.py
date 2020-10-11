@@ -7,8 +7,7 @@ import jieba.posseg
 import numpy as np
 import re
 
-from smoothnlp_identified.algorithm.phrase import extract_phrase
-from .phrase_extraction_new import *
+from smoothnlp_identified.smoothnlp_identified.algorithm.phrase.phrase_extraction import extract_phrase
 import logging  # Setting up the loggings to monitor gensim
 logging.basicConfig(format="%(levelname)s - %(asctime)s: %(message)s", datefmt='%H:%M:%S', level=logging.INFO)
 
@@ -33,36 +32,41 @@ def add_place_jieba():
     print('jieba loads!')
 
 
+# 读取文件为list，使得其可以区块提取
+def ReadTxtName(rootdir):
+    lines = []
+    with open(rootdir, 'r', encoding='utf-8') as file_to_read:
+        while True:
+            line = file_to_read.readline()
+            if not line:
+                break
+            line = line.strip('\n')
+            lines.append(line)
+    return lines
+
 # 添加名词
 def add_dictionary(num, top, min_=0):  # smoothnlp版本，要根据具体的文件格式来改
 
     # 已存在73w的语料库
     output_corpus = 'data/dictionary.txt'
-    dic_file = 'data/dictionary_data/web_dictionary' + num + '.txt'
+    dic_file = 'data/dictionary_data/web_dictionary' + 'my'+ '.txt'
 
-    '''
-    blog=……
-    b=blog[['blog','coment']]
-    print(blog.head())
-    lenth=blog.shape[0]
-    print(lenth)
+    corpus = ReadTxtName(output_corpus)
 
-    #用评论数据会有更多的网络用语
-    with open(output_corpus, 'w', encoding='utf-8') as writer:
-        for i in range(lenth):
-            words=corp.iloc[i,0]#评论数据在倒数第二列
-            if words[-1] not in ['。','！','？','~']:
-                words=words+'。'
-            writer.write(words)##########注意当前的光标位置
-    '''
+    dic = []
 
-    corpus = open(output_corpus, 'r', encoding='utf-8')
+    for i in range(100):
+        num = int(len(corpus)/100)
+
+        if min_ > 0:
+            t_dic = extract_phrase(corpus[ i*num: i*(num+1)], top, min_freq=min_)  # 也可以从数据库直接读取文件，定一下min_freq
+        else:
+            t_dic = extract_phrase(corpus[ i*num: i*(num+1)], top)
+        print('提取第i个')
+
+        dic.extend(t_dic)
 
 
-    if min_ > 0:
-        dic = extract_phrase(corpus, top, min_freq=min_)  # 也可以从数据库直接读取文件，定一下min_freq
-    else:
-        dic = extract_phrase(corpus, top)
     # extract_phrase(corpus,top_k,chunk_size,min_n,max_n,min_freq)
     with open(dic_file, 'w', encoding='utf-8') as writer:
         for word in dic:
